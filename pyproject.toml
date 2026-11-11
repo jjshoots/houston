@@ -3,6 +3,7 @@ name = "houston-inbox"
 version = "0.2.0"
 description = "Houston, we have a decision: one inbox for every decision your Claude Code sessions need from you."
 readme = "README.md"
+license = "MIT"
 requires-python = ">=3.10"
 dependencies = ["textual>=0.80"]
 

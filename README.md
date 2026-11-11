@@ -102,4 +102,4 @@ turns off all houston hooks. Or disable the whole plugin:
 uv run --no-project --with textual --with pytest --with pytest-asyncio pytest
 ```
 
-No license has been chosen yet.
+MIT. See `LICENSE`.

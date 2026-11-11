@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# houston: the decision inbox CLI. The inbox (no args or `tui`) needs uv for textual;
+# every other subcommand is stdlib-only and runs on plain python3.
+here="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+script="$here/scripts/houston.py"
+if [ $# -eq 0 ] || [ "$1" = "tui" ]; then
+  if command -v uv >/dev/null 2>&1; then
+    exec uv run --quiet --script "$script" "$@"
+  fi
+  echo "houston: the inbox needs uv (https://docs.astral.sh/uv/); other subcommands work without it" >&2
+  exit 1
+fi
+exec python3 "$script" "$@"

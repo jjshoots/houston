@@ -1,0 +1,27 @@
+{
+  "description": "houston: show the user's answers to each session, and catch replies that ask for a decision without logging it",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/hook_context.py\"", "timeout": 10}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/hook_context.py\"", "timeout": 10}
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 \"${CLAUDE_PLUGIN_ROOT}/scripts/hook_stop.py\"", "timeout": 10}
+        ]
+      }
+    ]
+  }
+}

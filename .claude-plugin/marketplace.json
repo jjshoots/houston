@@ -1,0 +1,12 @@
+{
+  "name": "houston",
+  "owner": {"name": "jjshoots", "url": "https://github.com/jjshoots"},
+  "description": "The houston plugin: a cross-session decision inbox for Claude Code.",
+  "plugins": [
+    {
+      "name": "houston",
+      "source": "./",
+      "description": "One inbox for every decision your Claude Code sessions need from you."
+    }
+  ]
+}

@@ -1,0 +1,647 @@
+{
+ "threads": [
+  {
+   "slug": "api-v2",
+   "goal": "Ship API v2 and move all clients off v1.",
+   "state": "blocked on you",
+   "note": "PR #45 waits on a review; 4 calls wait on you"
+  },
+  {
+   "slug": "mobile-port",
+   "goal": "Port the web checkout flow to the mobile app, with the same behavior.",
+   "state": "blocked on you",
+   "note": "PR #93 has green CI and no review"
+  }
+ ],
+ "decisions": [
+  {
+   "seed_id": "c01",
+   "thread": {
+    "slug": "api-v2",
+    "name": "API v2 rollout"
+   },
+   "kind": "go_ahead",
+   "title": "Merge the API v2 PR (PR #45)?",
+   "question": "API v2 passes CI and is 18% faster than v1 on the staging benchmark, but nobody has reviewed PR #45 yet.",
+   "options": [
+    {
+     "label": "merge now",
+     "then": "v2 lands on main today; the client switch is a separate step",
+     "means": "Merge PR #45 yourself now. v2 lands on main. Clients do not switch yet.",
+     "next_steps": [
+      "Merge the PR",
+      "Tell Alice and Bob it is merged",
+      "Ask Bob for a review after merge"
+     ],
+     "cost": "$0, 5 minutes",
+     "risk": "No second pair of eyes before main changes. A bug is found later."
+    },
+    {
+     "label": "ask Bob to review today",
+     "then": "one fast review; he knows the auth code less than Alice",
+     "means": "Ask Bob to review today. He reviewed the v1 rate limiter, so he knows the area.",
+     "next_steps": [
+      "Set Bob as reviewer",
+      "Send him the PR link and the 3 risky files",
+      "Merge when he approves"
+     ],
+     "cost": "$0, about 1 day",
+     "risk": "Bob knows the auth code less than Alice. A shallow review is possible.",
+     "star": true,
+     "why_pick": "Bob can read it today and Alice is busy. Alice can still do a pass after merge."
+    },
+    {
+     "label": "wait for Alice",
+     "then": "best review; client rollout slips about 3 days",
+     "means": "Wait for Alice. She gives the deepest review.",
+     "next_steps": [
+      "Ask Alice for a review",
+      "Do nothing else on the PR",
+      "Merge after she signs off"
+     ],
+     "cost": "$0, about 3 days of delay",
+     "risk": "The client switch to v2 slips about 3 days."
+    }
+   ],
+   "background": [
+    "Thread goal: ship API v2 and move all clients off v1.",
+    "v2 was built and tested against the full staging test suite (412 cases).",
+    "It is 18% faster than v1 on the staging benchmark.",
+    "PR #45 is open and CI is green.",
+    "Nobody is set as reviewer. Many tasks wait on the merge."
+   ],
+   "blocks": [
+    "client rollout to v2",
+    "removal of the old v1 endpoints",
+    "tickets API-210 and API-211"
+   ],
+   "changed_since": [
+    "CI went green on Nov 6. Still zero reviews on Nov 11."
+   ],
+   "context": [
+    [
+     "USER",
+     "ok push it and open the PR"
+    ],
+    [
+     "ASSISTANT",
+     "PR #45 is open. CI is green. Staging benchmark: 18% faster than v1."
+    ],
+    [
+     "ASSISTANT",
+     "Nobody is set as reviewer yet. Who should review it?"
+    ],
+    [
+     "USER",
+     "later"
+    ],
+    [
+     "ASSISTANT",
+     "Noted. I will ask again before the client rollout."
+    ]
+   ],
+   "qa": [
+    {
+     "q": "what does this mean in plain words?",
+     "a": "The new API is ready and faster than the old one. It is waiting only for someone to read the change and say OK."
+    },
+    {
+     "q": "what happens if I do nothing?",
+     "a": "The PR stays open. The mobile port (PR #93) cannot call v2, and two follow-up tickets stay blocked."
+    },
+    {
+     "q": "why did you pick Bob?",
+     "a": "Alice's queue is long. Bob reviewed the v1 rate limiter, so he can read the diff today. Alice can still do a post-merge pass."
+    }
+   ],
+   "urgency": 3,
+   "source": {
+    "session_id": "e2e-api-v2",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "PR #45 at 3f2c9b1"
+   },
+   "links_seed": [
+    {
+     "to": "c02",
+     "rel": "same PR; the load test result belongs in its body"
+    },
+    {
+     "to": "c11",
+     "rel": "same PR; add the migration table before review"
+    },
+    {
+     "to": "c13",
+     "rel": "the canary run only matters after merge"
+    }
+   ]
+  },
+  {
+   "seed_id": "c02",
+   "thread": {
+    "slug": "api-v2",
+    "name": "API v2 rollout"
+   },
+   "kind": "spend",
+   "title": "Run the full load test on v2",
+   "question": "You asked for a full load test before the rollout. Only a small smoke test exists. The full test on the staging cluster costs about $40.",
+   "options": [
+    {
+     "label": "spend $40, run it",
+     "then": "the full numbers go in the PR body tonight",
+     "means": "Run the full load test at 5x peak traffic for 1 hour. This gives the real capacity number.",
+     "next_steps": [
+      "Scale the staging cluster up",
+      "Run the test at 5x peak for 1 hour",
+      "Put the latency and error numbers in the PR body"
+     ],
+     "cost": "About $40, about 2 hours",
+     "risk": "Spends $40 to learn something that may change nothing.",
+     "star": true,
+     "why_pick": "It is your own rule for a rollout, and a smoke test cannot show limits under peak traffic."
+    },
+    {
+     "label": "run a 10-minute test (~$7)",
+     "then": "rough number; not good enough for a rollout",
+     "means": "Run a short test at 2x peak. This gives a rough number.",
+     "next_steps": [
+      "Scale staging to half size",
+      "Run the test at 2x peak for 10 minutes",
+      "Report as rough"
+     ],
+     "cost": "About $7, 30 minutes",
+     "risk": "A short test can miss memory leaks. The result may be noise."
+    },
+    {
+     "label": "skip it",
+     "then": "PR reports the smoke test only",
+     "means": "Skip the run. The PR shows the smoke test only.",
+     "next_steps": [
+      "Write 'smoke test only' in the PR body",
+      "Note the missing run in the rollout doc"
+     ],
+     "cost": "$0",
+     "risk": "Breaks your own rule. A reviewer may ask what the limit is."
+    }
+   ],
+   "background": [
+    "Thread goal: ship API v2 and move all clients off v1.",
+    "The smoke test ran 50 requests per second for 2 minutes.",
+    "Peak traffic on v1 is about 400 requests per second.",
+    "You said: run a full load test before any rollout.",
+    "No full test exists yet."
+   ],
+   "blocks": [
+    "capacity numbers in PR #45"
+   ],
+   "changed_since": [
+    "The smoke test finished on Nov 9. The full test was never started."
+   ],
+   "context": [
+    [
+     "ASSISTANT",
+     "Smoke test: 50 requests per second, no errors, p95 latency 120 ms."
+    ],
+    [
+     "ASSISTANT",
+     "Your rule says run a full load test before rollout. It is not done."
+    ],
+    [
+     "USER",
+     "how much"
+    ],
+    [
+     "ASSISTANT",
+     "About $40 for one hour at 5x peak on the staging cluster."
+    ]
+   ],
+   "qa": [
+    {
+     "q": "what is a load test?",
+     "a": "A test that sends a lot of fake traffic to the API. It shows how much traffic the API handles before it slows down or fails."
+    },
+    {
+     "q": "what happens if I do nothing?",
+     "a": "The PR shows only the smoke test. A reviewer may ask what happens at peak traffic."
+    }
+   ],
+   "urgency": 2,
+   "source": {
+    "session_id": "e2e-api-v2",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "docs/load-test-plan.md"
+   },
+   "links_seed": [
+    {
+     "to": "c01",
+     "rel": "the PR needs the load numbers before it merges"
+    },
+    {
+     "to": "c11",
+     "rel": "same PR body; do both edits in one pass"
+    }
+   ]
+  },
+  {
+   "seed_id": "c05",
+   "thread": {
+    "slug": "api-v2",
+    "name": "API v2 rollout"
+   },
+   "kind": "tell_someone",
+   "title": "Tell Carol about the breaking change",
+   "question": "API v2 changes the shape of the orders response. Carol's partner integration reads the old shape and will break on the day of the switch.",
+   "options": [
+    {
+     "label": "done, I told her",
+     "then": "this closes",
+     "means": "Done. You told Carol already.",
+     "next_steps": [
+      "Mark this as closed",
+      "Skip the draft"
+     ],
+     "cost": "$0",
+     "risk": "If you did not really tell her, the partner integration breaks."
+    },
+    {
+     "label": "draft the message for me",
+     "then": "Claude writes it; you send it",
+     "means": "Draft the message for you to send to Carol.",
+     "next_steps": [
+      "Write 3 lines with the old and new shape",
+      "Add the switch date and the migration guide link",
+      "Show you the text"
+     ],
+     "cost": "$0, 5 minutes",
+     "risk": "You must send it. The risk is low.",
+     "star": true,
+     "why_pick": "The partner needs time to change its code. A short note now avoids an outage on switch day."
+    },
+    {
+     "label": "not needed",
+     "then": "this closes; no message",
+     "means": "Not needed. Carol does not own that integration.",
+     "next_steps": [
+      "Close this item"
+     ],
+     "cost": "$0",
+     "risk": "The partner integration may fail with no warning."
+    }
+   ],
+   "background": [
+    "Thread goal: ship API v2 and move all clients off v1.",
+    "In v1 the orders list is a flat array.",
+    "In v2 it is an object with 'items' and a 'next_page' token.",
+    "Carol manages the partner integration that reads this list.",
+    "The v2 switch date is Nov 25."
+   ],
+   "blocks": [
+    "partner sign-off for the switch"
+   ],
+   "changed_since": [
+    "The response shape was final on Nov 11. Carol has not been told."
+   ],
+   "context": [
+    [
+     "USER",
+     "use a page token, not offsets. offsets drift"
+    ],
+    [
+     "ASSISTANT",
+     "Then the orders list becomes an object. The old flat array goes away in v2."
+    ],
+    [
+     "ASSISTANT",
+     "Carol's partner integration reads the flat array. Tell her?"
+    ]
+   ],
+   "qa": [
+    {
+     "q": "what does this mean in plain words?",
+     "a": "The same call returns a different shape in v2. Any code that reads the old shape stops working."
+    },
+    {
+     "q": "what would the message say?",
+     "a": "'Carol, orders in API v2 return an object with items and next_page, not a flat array. Switch date is Nov 25. The migration guide is linked.'"
+    }
+   ],
+   "urgency": 1,
+   "source": {
+    "session_id": "e2e-api-v2",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "docs/v2-breaking-changes.md"
+   },
+   "links_seed": [
+    {
+     "to": "c08",
+     "rel": "a published migration guide gives Carol a source to read"
+    }
+   ]
+  },
+  {
+   "seed_id": "n01",
+   "thread": {
+    "slug": "mobile-port",
+    "name": "Mobile app port"
+   },
+   "kind": "go_ahead",
+   "title": "Ask Alice to review PR #93",
+   "question": "The mobile checkout port has green CI and zero reviews. Ask Alice to review it?",
+   "options": [
+    {
+     "label": "yes, ping Alice now",
+     "then": "review likely in 1-2 days",
+     "means": "Ask Alice in Slack now to review this PR. She knows the checkout code.",
+     "next_steps": [
+      "Send Alice the PR link and a 2-line summary",
+      "Mention the 14 updated screenshot tests",
+      "Check the PR in 24 hours"
+     ],
+     "cost": "$0; review in 1-2 days",
+     "risk": "Alice may be busy; the PR is 1,900 lines",
+     "star": true,
+     "why_pick": "Alice owns this code and CI is already green. Each week of delay holds back the new checkout."
+    },
+    {
+     "label": "wait until the API v2 PR merges",
+     "then": "both land together; 3+ days later",
+     "means": "Hold the review until the API v2 PR merges. Both then land together.",
+     "next_steps": [
+      "Watch the API v2 PR",
+      "Ping Alice after it merges",
+      "Then start review"
+     ],
+     "cost": "$0; 3+ days later",
+     "risk": "The app stays on the old checkout longer"
+    },
+    {
+     "label": "ask Dan instead",
+     "then": "faster; Dan has not seen the checkout code",
+     "means": "Ask Dan to review instead. He is often faster.",
+     "next_steps": [
+      "Brief Dan on the port",
+      "Send the PR link",
+      "Ask Alice to look only at the payment parts"
+     ],
+     "cost": "$0; about 1 day",
+     "risk": "Dan has not seen the checkout code; Alice may be annoyed"
+    }
+   ],
+   "background": [
+    "The thread moves the web checkout flow into the mobile app.",
+    "The port is done. The PR is open.",
+    "CI is green. Nobody has reviewed it.",
+    "Alice owns this area. You said 'after lunch' and no ping went out."
+   ],
+   "blocks": [
+    "app store release with the new checkout"
+   ],
+   "changed_since": [
+    "CI went green on Nov 10.",
+    "No review or comment since."
+   ],
+   "context": [
+    [
+     "ASSISTANT",
+     "The port PR is open. CI green. 0 reviews."
+    ],
+    [
+     "ASSISTANT",
+     "Alice owns the checkout code. Ping her?"
+    ],
+    [
+     "USER",
+     "after lunch"
+    ],
+    [
+     "ASSISTANT",
+     "(no reply after that)"
+    ]
+   ],
+   "qa": [
+    {
+     "q": "what is the mobile port?",
+     "a": "The web checkout works today. This work rebuilds the same flow inside the iOS and Android app."
+    },
+    {
+     "q": "what happens if I do nothing?",
+     "a": "The app keeps the old checkout. Each week of delay pushes the app store release back."
+    }
+   ],
+   "urgency": 3,
+   "source": {
+    "session_id": "e2e-mobile-port",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "PR #93 at 8d04e6a"
+   },
+   "links_seed": [
+    {
+     "to": "n02",
+     "rel": "the review is one step; the release gate is the other"
+    },
+    {
+     "to": "n04",
+     "rel": "tell Alice about the 14 updated screenshots when you ping her"
+    }
+   ]
+  },
+  {
+   "seed_id": "n02",
+   "thread": {
+    "slug": "mobile-port",
+    "name": "Mobile app port"
+   },
+   "kind": "design",
+   "title": "What gates the app store release?",
+   "question": "What must pass before the new checkout ships to all users?",
+   "options": [
+    {
+     "label": "all automated tests pass",
+     "then": "fastest; only checks the code matches the web flow",
+     "means": "Ship when all automated tests pass. This only checks that the app and web agree.",
+     "next_steps": [
+      "Run the full test suite in CI",
+      "Release to all users if it passes"
+     ],
+     "cost": "$0; no extra time",
+     "risk": "Same gap as the last release; a real-device bug can pass"
+    },
+    {
+     "label": "tests + 10% staged rollout",
+     "then": "adds a real-user check; +2 days, no cash",
+     "means": "Tests must pass, then release to 10% of users. Watch crashes and checkout errors for 2 days.",
+     "next_steps": [
+      "Turn on the 10% rollout in the store console",
+      "Watch crash and checkout error rates for 2 days",
+      "Compare with the old checkout",
+      "Go to 100% if the numbers match"
+     ],
+     "cost": "No cash and +2 days",
+     "risk": "Two more days before all users get it",
+     "star": true,
+     "why_pick": "A staged rollout would have caught the last crash bug and costs only 2 days."
+    },
+    {
+     "label": "tests + 20 testers on real devices",
+     "then": "strongest; needs the QA team's time",
+     "means": "Tests plus 20 testers try the checkout on real phones.",
+     "next_steps": [
+      "Pick 20 testers",
+      "Send them the beta build",
+      "Wait for their reports"
+     ],
+     "cost": "No cash; several days of tester time",
+     "risk": "Slow; testers may not have time"
+    }
+   ],
+   "background": [
+    "The port is done, but the rule for shipping is not defined.",
+    "For the last release only automated tests ran.",
+    "One crash bug reached users and stayed for 2 days.",
+    "So we need to choose what this release must pass first."
+   ],
+   "blocks": [
+    "app store release",
+    "ticket MOB-77"
+   ],
+   "changed_since": [
+    "Nothing new since Nov 8.",
+    "The 14 changed screenshot tests are now explained (see the Alice message)."
+   ],
+   "context": [
+    [
+     "ASSISTANT",
+     "The port is done. The release gate is not defined."
+    ],
+    [
+     "USER",
+     "what did we do last time"
+    ],
+    [
+     "ASSISTANT",
+     "Last release used automated tests only. One crash bug reached users for 2 days."
+    ]
+   ],
+   "qa": [
+    {
+     "q": "what does this mean in plain words?",
+     "a": "Before the new checkout goes to everyone, what test must it pass?"
+    },
+    {
+     "q": "why did you pick tests + staged rollout?",
+     "a": "Tests alone let a bug through last time. A 10% rollout would have caught it, and it costs no cash."
+    }
+   ],
+   "urgency": 3,
+   "source": {
+    "session_id": "e2e-mobile-port",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "release gate (open item)"
+   },
+   "links_seed": [
+    {
+     "to": "n01",
+     "rel": "same port; the review and the gate both block release"
+    },
+    {
+     "to": "n03",
+     "rel": "ticket MOB-77 may be part of the gate"
+    }
+   ]
+  },
+  {
+   "seed_id": "n05",
+   "thread": {
+    "slug": "mobile-port",
+    "name": "Mobile app port"
+   },
+   "kind": "claude_decided",
+   "title": "Copied the tax rounding fix into the app",
+   "question": "Claude copied the tax rounding fix into the mobile port without a separate ticket, while you were away.",
+   "options": [
+    {
+     "label": "keep",
+     "then": "nothing changes; this closes",
+     "means": "Keep it in the PR as it is.",
+     "next_steps": [
+      "Leave commit a71be02",
+      "Keep the note in the PR body"
+     ],
+     "cost": "$0",
+     "risk": "One PR has two changes; review is harder",
+     "star": true,
+     "why_pick": "Without it, the app and web differ by one cent on 14 test orders and the parity test fails."
+    },
+    {
+     "label": "reverse",
+     "then": "Claude undoes it and reports what changed",
+     "means": "Take it out and make a separate ticket and PR.",
+     "next_steps": [
+      "Revert the commit",
+      "Open a new ticket",
+      "Update the screenshot tests"
+     ],
+     "cost": "About half a day",
+     "risk": "Parity test fails until the new PR lands"
+    },
+    {
+     "label": "explain",
+     "then": "shows why in the context panel; stays open",
+     "means": "Explain it to me first, in a short note.",
+     "next_steps": [
+      "Write 3 lines on what changed and why",
+      "Show the 14 changed orders"
+     ],
+     "cost": "$0; 5 minutes",
+     "risk": "None; you still decide later"
+    }
+   ],
+   "background": [
+    "The app and the web checkout must show the same totals.",
+    "The tax rounding fix was only on the web side.",
+    "Claude copied it into the app while you were away.",
+    "It went into the same PR (commit a71be02), with no new ticket."
+   ],
+   "blocks": [],
+   "changed_since": [
+    "The fix made 14 screenshot tests change.",
+    "CI is green with the fix."
+   ],
+   "context": [
+    [
+     "ASSISTANT",
+     "The app and web must show the same totals. I copied the fix in the same PR."
+    ]
+   ],
+   "qa": [
+    {
+     "q": "why did you do this?",
+     "a": "Without it, the app and web differ by one cent on 14 test orders, and the parity test fails."
+    }
+   ],
+   "urgency": 1,
+   "source": {
+    "session_id": "e2e-mobile-port",
+    "cwd": "/tmp",
+    "branch": "main",
+    "transcript": "",
+    "pointer": "app commit a71be02"
+   },
+   "links_seed": [
+    {
+     "to": "n04",
+     "rel": "this commit is why 14 screenshot tests changed"
+    }
+   ]
+  }
+ ]
+}

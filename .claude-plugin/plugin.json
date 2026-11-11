@@ -1,0 +1,9 @@
+{
+  "name": "houston",
+  "version": "0.1.0",
+  "description": "One inbox for every decision your Claude Code sessions need from you: answer in batch in a terminal UI, answers flow back to the sessions.",
+  "author": {"name": "jjshoots", "url": "https://github.com/jjshoots"},
+  "homepage": "https://github.com/jjshoots/houston",
+  "repository": "https://github.com/jjshoots/houston",
+  "keywords": ["decisions", "inbox", "tui", "hooks", "workflow"]
+}

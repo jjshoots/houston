@@ -30,25 +30,24 @@ claude plugin uninstall houston@houston
 claude plugin marketplace remove houston
 ```
 
+If you installed the terminal command, also run `uv tool uninstall houston-inbox`.
 Your decisions stay in `~/.claude/houston`. Delete that folder to remove
 them.
 
 ## Open the inbox
 
-Claude's Bash tool gets `houston` on its PATH from the plugin. Your own shell
-does not, so add a launcher once:
+The plugin puts `houston` on the PATH of Claude's Bash tool only. For your
+own terminal, install the same code as a Python tool:
 
 ```sh
-# zsh / bash
-alias houston='"$(ls -td ~/.claude/plugins/cache/houston/houston/*/bin/houston | head -1)"'
+uv tool install git+https://github.com/jjshoots/houston   # install
+uv tool upgrade houston-inbox                              # upgrade
+uv tool uninstall houston-inbox                            # uninstall
 ```
 
-```fish
-# fish
-function houston; (ls -td ~/.claude/plugins/cache/houston/houston/*/bin/houston | head -1) $argv; end; funcsave houston
-```
-
-Then run `houston`.
+Then run `houston`. Both routes use the same store (`~/.claude/houston`,
+or `HOUSTON_HOME`). If your shell cannot find `houston`, run
+`uv tool update-shell` once.
 
 ## Keys
 

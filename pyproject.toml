@@ -1,0 +1,25 @@
+[project]
+name = "houston-inbox"
+version = "0.2.0"
+description = "Houston, we have a decision: one inbox for every decision your Claude Code sessions need from you."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["textual>=0.80"]
+
+[project.urls]
+Homepage = "https://github.com/jjshoots/houston"
+
+[project.scripts]
+houston = "houston_inbox.houston:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# One copy of the code: scripts/ is installed as the package houston_inbox.
+# The same files still run as plain scripts (bin/houston, hooks, PEP 723) from a bare clone.
+[tool.hatch.build.targets.wheel]
+only-include = ["scripts"]
+
+[tool.hatch.build.targets.wheel.sources]
+"scripts" = "houston_inbox"

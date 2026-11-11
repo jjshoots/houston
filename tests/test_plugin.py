@@ -100,3 +100,18 @@ def test_no_python_outside_stdlib_in_hooks() -> None:
         mods = re.findall(r"^\s*(?:import|from)\s+([a-zA-Z_][\w]*)", src, re.M)
         for m in mods:
             assert m in sys.stdlib_module_names or m in ("store", "__future__"), (name, m)
+
+
+@pytest.mark.skipif(shutil.which("uv") is None, reason="uv not installed")
+def test_installs_as_a_python_tool(home: Path) -> None:
+    """The package builds from the repo and its `houston` console script runs against HOUSTON_HOME."""
+    r = subprocess.run(["uv", "tool", "run", "--isolated", "--from", str(ROOT), "houston", "doctor"],
+                       capture_output=True, text=True, timeout=300, check=False, cwd=str(ROOT.parent))
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert str(home) in r.stdout and "OK" in r.stdout
+
+
+def test_versions_in_step() -> None:
+    """pyproject.toml and the plugin manifest carry the same version."""
+    py = (ROOT / "pyproject.toml").read_text()
+    assert f'version = "{load(".claude-plugin/plugin.json")["version"]}"' in py

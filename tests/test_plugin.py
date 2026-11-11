@@ -32,7 +32,7 @@ def test_plugin_manifest() -> None:
     assert m["description"] and m["version"] and m["author"]["name"]
     for key in ("homepage", "repository"):
         assert m[key].startswith("https://")
-    assert "license" not in m, "no license chosen yet"
+    assert m.get("license") == "MIT"
 
 
 def test_marketplace() -> None:
